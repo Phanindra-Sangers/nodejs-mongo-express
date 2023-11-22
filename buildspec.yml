@@ -1,0 +1,49 @@
+version: 0.2
+phases:
+  install:
+    commands:
+      - yum install -y jq
+      - yum install -y unzip
+      - export SONAR_SCANNER_VERSION=4.7.0.2747
+      - export SONAR_SCANNER_HOME=$HOME/.sonar/sonar-scanner-$SONAR_SCANNER_VERSION-linux
+      - curl --create-dirs -sSLo $HOME/.sonar/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$SONAR_SCANNER_VERSION-linux.zip
+      - unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
+      - export PATH=$SONAR_SCANNER_HOME/bin:$PATH
+      - export SONAR_SCANNER_OPTS="-server"
+  pre_build:
+    commands:
+      - echo Logging starting build ...
+      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 872599169723.dkr.ecr.ap-south-1.amazonaws.com
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the ui Docker image...          
+      - docker build -t 872599169723.dkr.ecr.ap-south-1.amazonaws.com/dev-canary:$CODEBUILD_BUILD_NUMBER .
+      
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push 872599169723.dkr.ecr.ap-south-1.amazonaws.com/dev-canary:$CODEBUILD_BUILD_NUMBER
+      - echo Writing image definitions file...
+      - printf '[{"name":"dev-node","imageUri":"%s"}]' 872599169723.dkr.ecr.ap-south-1.amazonaws.com/dev-canary:$CODEBUILD_BUILD_NUMBER > imagedefinitions.json
+      - printf '{"ImageURI":"%s"}' 872599169723.dkr.ecr.ap-south-1.amazonaws.com/dev-canary:$CODEBUILD_BUILD_NUMBER > imageDetail.json
+      - echo Running SonarQube analysis...
+    #   - sonar-scanner -Dsonar.organization=sonar-karamyogi -Dsonar.projectKey=sonar-karamyogi_sonar-karamyogi -Dsonar.sources=. -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=dd8e7801ccc861d4756d172cc2d89f28cafa6a5a
+      - sonar-scanner -Dsonar.projectKey=karamyogi -Dsonar.sources=. -Dsonar.host.url=http://13.127.68.230:9000 -Dsonar.login=sqp_6139806a1b9e0ec78e7a6511fa9ba4edc674ff30
+      
+
+artifacts:
+  files: 
+    - 'imagedefinitions.json'
+    - 'appspec.yaml'
+    - 'taskdef.json'
+    - 'imageDetail.json'
+  secondary-artifacts:
+    DefinitionArtifact:
+      files:
+        - appspec.yaml
+        - taskdef.json
+    ImageArtifact:
+      files:
+        - imageDetail.json
