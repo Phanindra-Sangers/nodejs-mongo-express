@@ -1,0 +1,118 @@
+{
+    "taskDefinitionArn": "arn:aws:ecs:ap-south-1:805392809179:task-definition/monog-express:8",
+    "containerDefinitions": [
+        {
+            "name": "mongo-ui",
+            "image": "mongo-express:latest",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "name": "mongo-ui-8081-tcp",
+                    "containerPort": 8081,
+                    "hostPort": 8081,
+                    "protocol": "tcp",
+                    "appProtocol": "http"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                {
+                    "name": "ME_CONFIG_MONGODB_ADMINUSERNAME",
+                    "value": "admin"
+                },
+                {
+                    "name": "ME_CONFIG_MONGODB_URL",
+                    "value": "mongodb://admin:password@35.154.60.189:27017/"
+                },
+                {
+                    "name": "ME_CONFIG_MONGODB_ADMINPASSWORD",
+                    "value": "password"
+                }
+            ],
+            "environmentFiles": [],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "ulimits": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-create-group": "true",
+                    "awslogs-group": "/ecs/monog-express",
+                    "awslogs-region": "ap-south-1",
+                    "awslogs-stream-prefix": "ecs"
+                },
+                "secretOptions": []
+            }
+        },
+        {
+            "name": "aws-otel-collector",
+            "image": "public.ecr.aws/aws-observability/aws-otel-collector:v0.37.1",
+            "cpu": 0,
+            "portMappings": [],
+            "essential": true,
+            "command": [
+                "--config=/etc/ecs/ecs-amp.yaml"
+            ],
+            "environment": [
+                {
+                    "name": "AWS_PROMETHEUS_ENDPOINT",
+                    "value": "https://aps-workspaces.ap-south-1.amazonaws.com/workspaces/ws-6d23b2b8-b4bf-4927-aa47-518280907f99/api/v1/remote_write"
+                }
+            ],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-create-group": "true",
+                    "awslogs-group": "/ecs/ecs-aws-otel-sidecar-collector",
+                    "awslogs-region": "ap-south-1",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            }
+        }
+    ],
+    "family": "monog-express",
+    "executionRoleArn": "arn:aws:iam::805392809179:role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "revision": 8,
+    "volumes": [],
+    "status": "ACTIVE",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "name": "ecs.capability.task-eni"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+        }
+    ],
+    "placementConstraints": [],
+    "compatibilities": [
+        "EC2",
+        "FARGATE"
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "1024",
+    "memory": "3072",
+    "runtimePlatform": {
+        "cpuArchitecture": "X86_64",
+        "operatingSystemFamily": "LINUX"
+    },
+    "registeredAt": "2024-02-26T08:48:38.883Z",
+    "registeredBy": "arn:aws:iam::805392809179:user/sreekanth.kodavati@minfytech.com",
+    "tags": []
+}
